@@ -6,7 +6,7 @@ return function(args)
 		return ""
 	end
 
-	local summary = vim.b.minidiff_summary_string or vim.b.gitsigns_status
+	local summary = vim.b.neovimdiff_summary_string or vim.b.gitsigns_status
 	if summary == nil then
 		return ""
 	end
