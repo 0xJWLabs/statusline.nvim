@@ -8,12 +8,7 @@ local default_options = {
   use_icon = true
 }
 
-local cached_colors = nil
-
 local function apply_default_colors()
-  if cached_colors then
-    return cached_colors
-  end
 	local default_diagnostics_color = {
 		error = {
 			fg = utils.extract_color_from_hllist(
@@ -45,7 +40,6 @@ local function apply_default_colors()
 		},
 	}
 
-  cached_colors = default_diagnostics_color
 	return default_diagnostics_color
 end
 
@@ -71,10 +65,10 @@ end
 --- output. Otherwise uses |vim.diagnostic.get()| to compute and show number of
 --- errors ('E'), warnings ('W'), information ('I'), and hints ('H').
 ---
---- Short output is returned if window width is lower than `args.trunc_width`.
+--- Short output is returned if window width is lower than args.trunc_width.
 ---
----@param args __statusline_args Use `args.icon` to supply your own icon.
----   Use `args.signs` to use custom signs per severity level name. For example: >lua
+---@param args __statusline_args Use args.icon to supply your own icon.
+---   Use args.signs to use custom signs per severity level name. For example: >lua
 ---
 ---     { ERROR = '!', WARN = '?', INFO = '@', HINT = '*' }
 --- <
@@ -96,15 +90,24 @@ local function create_component(args)
 		local n = count[severity[level.name]] or 0
 		-- Add level info only if diagnostic is present
 		if n > 0 then
-      local sign = (args.use_icon and use_icons) and level.sign_icon .. ' ' or level.sign
-      local diagnostic_str = args.colored
-        and ("%#" .. "NeoVimStatuslineDiagnostic" .. level.name .. "# " .. sign .. n)
-        or (sign .. " " .. n)
-      table.insert(t, diagnostic_str)
+			table.insert(
+				t,
+				args.colored
+						and string.format(
+							"%%#%s# %s%d",
+							"NeoVimStatuslineDiagnostic" .. level.name,
+							(args.use_icon and use_icons) and level.sign_icon .. ' ' or level.sign,
+							n
+						)
+					or string.format("%s %d", (args.use_icon and use_icons) and level.sign_icon .. ' ' or level.sign, n)
+			)
 		end
 	end
+	if #t == 0 then
+		return ""
+	end
 
-	return #t > 0 and table.concat(t, " ") or ""
+	return table.concat(t, " ")
 end
 
 return create_component
