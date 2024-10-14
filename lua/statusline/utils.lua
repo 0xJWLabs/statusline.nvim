@@ -36,11 +36,9 @@ end
 --- @param defaults table Highlight defaults
 function M.create_highlight_group(name, defaults)
 	-- Check if the group exists using the new Lua API
-	local exists, _ = pcall(vim.api.nvim_get_hl, 0, { name = name })
-
-	if not exists then
-		vim.api.nvim_set_hl(0, name, defaults)
-	end
+  if vim.fn.hlexists(name) == 0 then
+    vim.api.nvim_set_hl(0, name, defaults)
+  end
 end
 
 -- Note for now only works for termguicolors scope can be bg or fg or any other
