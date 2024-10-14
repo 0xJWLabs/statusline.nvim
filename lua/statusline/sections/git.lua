@@ -1,4 +1,16 @@
 local config = require("statusline.config")
+local H = require("statusline.helper")
+
+local default_options = {
+  icon = "",
+  trunc_width = 100,
+  summary = false,
+}
+
+local function clean_git_status(git_status)
+    -- This pattern removes any text within parentheses, including the parentheses themselves
+     return git_status:gsub("%s*%([^()]*%)", ""):gsub("%s+", " "):gsub("^%s*(.-)%s*$", "%1") -- Clean extra spaces
+end
 
 --- Section for Git information
 ---
@@ -15,19 +27,20 @@ local config = require("statusline.config")
 ---
 ---@return __statusline_section
 local function create_component(args)
-	local H = require("statusline.helper")
+  args = vim.tbl_deep_extend("force", default_options, args or {})
 	if NeoVimStatusline.is_truncated(args.trunc_width) then
 		return ""
 	end
 
-	local summary = vim.b.minigit_summary_string or vim.b.gitsigns_head
+	local summary = vim.b.neovimgit_summary_string or vim.b.gitsigns_head
 	if summary == nil then
 		return ""
 	end
 
 	local use_icons = H.use_icons or config.use_icons
-	local icon = args.icon or (use_icons and "" or "Git")
-	return icon .. " " .. (summary == "" and "-" or summary)
+  local icon = use_icons and args.icon or "Git"
+  summary = summary == "" and "-" or args.summary and summary or clean_git_status(summary)
+	return icon .. " " .. summary
 end
 
 return create_component
