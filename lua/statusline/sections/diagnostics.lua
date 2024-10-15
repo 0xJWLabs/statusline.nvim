@@ -4,7 +4,7 @@ local config = require("statusline.config")
 
 local default_options = {
   trunc_width = 100,
-  colored = true,
+  colored = false,
   use_icon = true
 }
 
@@ -86,7 +86,7 @@ local function create_component(args)
 	--- @diagnostic disable-next-line:unused-local
 	local severity, t, signs = vim.diagnostic.severity, {}, args.signs or {}
 	local use_icons = H.use_icons or config.use_icons
-	for _, level in ipairs(H.diagnostic_levels) do
+	for i, level in ipairs(H.diagnostic_levels) do
 		local n = count[severity[level.name]] or 0
 		-- Add level info only if diagnostic is present
 		if n > 0 then
@@ -94,12 +94,12 @@ local function create_component(args)
 				t,
 				args.colored
 						and string.format(
-							"%%#%s# %s%d",
+							"%%#%s#%s%d",
 							"NeoVimStatuslineDiagnostic" .. level.name,
 							(args.use_icon and use_icons) and level.sign_icon .. ' ' or level.sign,
 							n
-						)
-					or string.format("%s %d", (args.use_icon and use_icons) and level.sign_icon .. ' ' or level.sign, n)
+						) .. (i < #H.diagnostic_levels and " " or "")
+					or string.format("%s%d", (args.use_icon and use_icons) and level.sign_icon .. ' ' or level.sign, n) .. (i < #H.diagnostic_levels and " " or "")
 			)
 		end
 	end
@@ -107,7 +107,7 @@ local function create_component(args)
 		return ""
 	end
 
-	return table.concat(t, " ")
+	return table.concat(t, "")
 end
 
 return create_component
