@@ -286,6 +286,20 @@ function H.inactive()
 	return (config.content.inactive or H.default_content_inactive)()
 end
 
+--- @generic T
+--- @param func fun(value: T, index: integer): T
+--- @param tbl table<integer, T>
+--- @return table<integer, T> 
+vim.tbl_map_custom = function(func, tbl)
+  local result = {}
+  for index, value in ipairs(tbl) do
+    local newValue = func(value, index)
+    result[index] = newValue
+  end
+
+  return result
+end
+
 --- Combine groups of sections
 ---
 --- Each group can be either a string or a table with fields `hl` (group's
@@ -304,9 +318,9 @@ end
 function H.combine_groups(groups)
 	local parts = vim.tbl_map(function(s)
 		if type(s) == "string" then
-      if s == "separator" then
-        s = "%="
-      end
+			if s == "separator" then
+				s = "%="
+			end
 			return s
 		end
 		if type(s) ~= "table" then
@@ -316,6 +330,14 @@ function H.combine_groups(groups)
 		local string_arr = vim.tbl_filter(function(x)
 			return type(x) == "string" and x ~= ""
 		end, s.strings or {})
+
+    string_arr = vim.tbl_map_custom(function(str, i)
+      if s.hl and (i < #string_arr or #string_arr == 1) then
+        return string.format('%s%%#%s#', str, s.hl)
+      end
+      return str
+    end, string_arr)
+
 		local str = table.concat(string_arr, " ")
 
 		-- Use previous highlight group
@@ -328,9 +350,7 @@ function H.combine_groups(groups)
 			return "%#" .. s.hl .. "#"
 		end
 
-		if not s.hl then
-			return string.format("%s ", str)
-		end
+    -- return string.format("%s ", str)
 
 		return string.format("%%#%s# %s ", s.hl, str)
 	end, groups)
